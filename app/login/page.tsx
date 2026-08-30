@@ -38,6 +38,7 @@ export default function LoginPage() {
         setError(data.error || "Something went wrong.");
         return;
       }
+      window.dispatchEvent(new Event("auth-updated"));
       router.push("/profile");
       router.refresh();
     } catch {
