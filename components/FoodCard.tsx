@@ -24,9 +24,16 @@ export function addToCart(item: FoodItem, quantity = 1) {
   notifyCartUpdated();
 }
 
+export function removeFromCart(itemId: string) {
+  const cart = loadCart();
+  const next = cart.filter((ci) => ci.item.id !== itemId);
+  saveCart(next);
+  notifyCartUpdated();
+}
+
 export default function FoodCard({ item }: { item: FoodItem }) {
   const [inCart, setInCart] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [confirmMode, setConfirmMode] = useState<"add" | "remove" | null>(null);
 
   useEffect(() => {
     function checkCart() {
@@ -39,8 +46,12 @@ export default function FoodCard({ item }: { item: FoodItem }) {
   }, [item.id]);
 
   function handleConfirm() {
-    addToCart(item);
-    setConfirming(false);
+    if (confirmMode === "add") {
+      addToCart(item);
+    } else if (confirmMode === "remove") {
+      removeFromCart(item.id);
+    }
+    setConfirmMode(null);
   }
 
   return (
@@ -77,35 +88,49 @@ export default function FoodCard({ item }: { item: FoodItem }) {
         </div>
         <p className="line-clamp-2 text-sm text-ink/55">{item.description}</p>
 
-        <div className="ticket-tear mt-3 flex items-center justify-between pt-3">
+        <div className="ticket-tear mt-3 flex items-center justify-between gap-2 pt-3">
           <span className="price-tag text-base font-semibold text-ink">
             {formatCurrency(item.price)}
           </span>
-          <Button
-            size="sm"
-            disabled={!item.isAvailable}
-            onClick={() => setConfirming(true)}
-            className={inCart ? "!bg-olive" : ""}
-          >
-            {!item.isAvailable ? "Sold out" : inCart ? "Added ✓" : "Add +"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {inCart && (
+              <button
+                onClick={() => setConfirmMode("remove")}
+                className="font-mono text-[10px] uppercase tracking-widest text-chili/70 underline hover:text-chili"
+              >
+                Remove
+              </button>
+            )}
+            <Button
+              size="sm"
+              disabled={!item.isAvailable}
+              onClick={() => setConfirmMode("add")}
+              className={inCart ? "!bg-olive" : ""}
+            >
+              {!item.isAvailable ? "Sold out" : inCart ? "Added ✓" : "Add +"}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {confirming && (
+      {confirmMode && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4"
-          onClick={() => setConfirming(false)}
+          onClick={() => setConfirmMode(null)}
         >
           <div
             className="w-full max-w-sm border-2 border-ink bg-cream p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-ink/50">
-              Confirm order
+              {confirmMode === "remove" ? "Confirm removal" : "Confirm order"}
             </p>
             <h3 className="mb-3 font-display text-lg text-ink">
-              {inCart ? `Add another ${item.name}?` : `Add ${item.name} to your cart?`}
+              {confirmMode === "remove"
+                ? `Remove ${item.name} from your cart?`
+                : inCart
+                ? `Add another ${item.name}?`
+                : `Add ${item.name} to your cart?`}
             </h3>
             <div className="mb-4 flex items-center justify-between border-t border-ink/10 pt-3">
               <span className="text-sm text-ink/60">Price</span>
@@ -115,16 +140,20 @@ export default function FoodCard({ item }: { item: FoodItem }) {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setConfirming(false)}
+                onClick={() => setConfirmMode(null)}
                 className="flex-1 border border-ink/20 py-2 font-mono text-xs uppercase tracking-widest text-ink/70 hover:border-ink/40"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
-                className="flex-1 bg-ink py-2 font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili"
+                className={`flex-1 py-2 font-mono text-xs uppercase tracking-widest text-cream ${
+                  confirmMode === "remove"
+                    ? "bg-chili hover:bg-chili/80"
+                    : "bg-ink hover:bg-chili"
+                }`}
               >
-                Yes, add it
+                {confirmMode === "remove" ? "Yes, remove it" : "Yes, add it"}
               </button>
             </div>
           </div>
