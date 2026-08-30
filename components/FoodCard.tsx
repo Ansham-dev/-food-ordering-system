@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FoodItem, CartItem } from "@/types";
 import { formatCurrency, loadCart, saveCart } from "@/lib/utils";
 import Button from "./Button";
@@ -25,14 +25,22 @@ export function addToCart(item: FoodItem, quantity = 1) {
 }
 
 export default function FoodCard({ item }: { item: FoodItem }) {
-  const [added, setAdded] = useState(false);
+  const [inCart, setInCart] = useState(false);
   const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    function checkCart() {
+      const cart = loadCart();
+      setInCart(cart.some((ci) => ci.item.id === item.id));
+    }
+    checkCart();
+    window.addEventListener("cart-updated", checkCart);
+    return () => window.removeEventListener("cart-updated", checkCart);
+  }, [item.id]);
 
   function handleConfirm() {
     addToCart(item);
     setConfirming(false);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
   }
 
   return (
@@ -77,9 +85,9 @@ export default function FoodCard({ item }: { item: FoodItem }) {
             size="sm"
             disabled={!item.isAvailable}
             onClick={() => setConfirming(true)}
-            className={added ? "!bg-olive" : ""}
+            className={inCart ? "!bg-olive" : ""}
           >
-            {!item.isAvailable ? "Sold out" : added ? "Added ✓" : "Add +"}
+            {!item.isAvailable ? "Sold out" : inCart ? "Added ✓" : "Add +"}
           </Button>
         </div>
       </div>
@@ -97,7 +105,7 @@ export default function FoodCard({ item }: { item: FoodItem }) {
               Confirm order
             </p>
             <h3 className="mb-3 font-display text-lg text-ink">
-              Add {item.name} to your cart?
+              {inCart ? `Add another ${item.name}?` : `Add ${item.name} to your cart?`}
             </h3>
             <div className="mb-4 flex items-center justify-between border-t border-ink/10 pt-3">
               <span className="text-sm text-ink/60">Price</span>
