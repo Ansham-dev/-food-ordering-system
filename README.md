@@ -1,8 +1,7 @@
 # Ticket — Food Ordering System
 
 A full-stack Next.js (App Router) + TypeScript + Tailwind CSS food ordering
-app, backed by a real SQLite database via Prisma. Built for an IGNOU BCA
-final semester project (BCSP-064).
+app, backed by a real SQLite database via Prisma.
 
 ## Features
 
@@ -78,24 +77,3 @@ types/            Shared TypeScript types
 public/           Static assets (logo, category images)
 ```
 
-## How auth works (kept intentionally simple for a course project)
-
-- Passwords are hashed with `bcryptjs` before being stored.
-- On login/signup, a session cookie is set containing `<userId>.<hmac>`,
-  signed with `SESSION_SECRET` from `.env` — tampering with the cookie
-  invalidates it.
-- `lib/auth.ts#getSessionUser()` reads and verifies that cookie in server
-  components and route handlers.
-- This is a from-scratch minimal implementation, not a library like
-  NextAuth — intentional, so the auth flow is easy to explain in a viva/demo.
-
-## Notes for the project report
-
-- **ER diagram**: derive it directly from `prisma/schema.prisma` — `User`
-  1-to-many `Order`, `Order` 1-to-many `OrderItem`, `OrderItem` many-to-1
-  `FoodItem`.
-- **DFD**: the API routes under `app/api/` map cleanly to processes (Login,
-  Place Order, View Menu, Admin View Orders); `dev.db` is the single data
-  store.
-- Add screenshots after `npm run dev` — the styled UI (menu grid, checkout,
-  admin dashboard) is presentation-ready as-is.
