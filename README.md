@@ -1,7 +1,10 @@
 # Ticket — Food Ordering System
 
+**Live demo:** [food-ordering-system-gilt-chi.vercel.app](https://food-ordering-system-gilt-chi.vercel.app)
+*(Try the [menu](https://food-ordering-system-gilt-chi.vercel.app/menu) directly)*
+
 A full-stack Next.js (App Router) + TypeScript + Tailwind CSS food ordering
-app, backed by a real SQLite database via Prisma.
+app, backed by a real PostgreSQL database via Prisma.
 
 ## Features
 
@@ -17,12 +20,12 @@ app, backed by a real SQLite database via Prisma.
 - **Admin** — dashboard reading real orders and menu items from the
   database, restricted to accounts with `role = "admin"`
 
-## Getting started
+## Getting started (run it locally)
 
 ```bash
 npm install
 cp .env.example .env
-npm run db:reset    # creates the SQLite file, tables, and seed data
+npm run db:reset    # pushes the schema and loads seed data into your database
 npm run dev
 ```
 
@@ -30,6 +33,10 @@ Visit http://localhost:3000.
 
 `npm install` runs `prisma generate` automatically (see the `postinstall`
 script in `package.json`).
+
+Before running the app, set `DATABASE_URL` (and `DIRECT_URL`, if your
+provider requires a separate direct connection — e.g. Neon) in your `.env`
+file to point to a real PostgreSQL database.
 
 ### Demo accounts
 
@@ -44,17 +51,17 @@ creates a real row in the `User` table.
 
 ## Database
 
-Uses SQLite (`prisma/schema.prisma`, `DATABASE_URL="file:./dev.db"`) — a
-single file, no server to install or configure. Good enough for a project
-demo; swapping to PostgreSQL/MySQL later only means changing the
-`datasource` block and re-running `db:push`.
+Uses **PostgreSQL** (`prisma/schema.prisma`), connected via `DATABASE_URL`
+(and `DIRECT_URL` for providers like Neon that separate pooled vs. direct
+connections). Role/category/status/payment fields are plain strings rather
+than native enums, validated in application code (see `lib/validators.ts`).
 
 Useful commands:
 
 ```bash
 npm run db:push     # sync the schema to the database
 npm run db:seed     # (re)load menu items + demo admin
-npm run db:reset     # wipe + push + seed, in one step
+npm run db:reset     # force-reset + push + seed, in one step
 npm run db:studio    # open Prisma Studio, a GUI to browse/edit data
 ```
 
@@ -76,4 +83,3 @@ prisma/           schema.prisma + seed.ts
 types/            Shared TypeScript types
 public/           Static assets (logo, category images)
 ```
-
