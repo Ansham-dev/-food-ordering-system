@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { FoodItem, CartItem } from "@/types";
 import { formatCurrency, loadCart, saveCart } from "@/lib/utils";
 import Button from "./Button";
@@ -24,6 +25,16 @@ export function addToCart(item: FoodItem, quantity = 1) {
 }
 
 export default function FoodCard({ item }: { item: FoodItem }) {
+  const [added, setAdded] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  function handleConfirm() {
+    addToCart(item);
+    setConfirming(false);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1200);
+  }
+
   return (
     <div className="ticket group flex flex-col overflow-hidden transition-transform hover:-translate-y-0.5">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper">
@@ -65,12 +76,52 @@ export default function FoodCard({ item }: { item: FoodItem }) {
           <Button
             size="sm"
             disabled={!item.isAvailable}
-            onClick={() => addToCart(item)}
+            onClick={() => setConfirming(true)}
+            className={added ? "!bg-olive" : ""}
           >
-            {item.isAvailable ? "Add +" : "Sold out"}
+            {!item.isAvailable ? "Sold out" : added ? "Added ✓" : "Add +"}
           </Button>
         </div>
       </div>
+
+      {confirming && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4"
+          onClick={() => setConfirming(false)}
+        >
+          <div
+            className="w-full max-w-sm border-2 border-ink bg-cream p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-ink/50">
+              Confirm order
+            </p>
+            <h3 className="mb-3 font-display text-lg text-ink">
+              Add {item.name} to your cart?
+            </h3>
+            <div className="mb-4 flex items-center justify-between border-t border-ink/10 pt-3">
+              <span className="text-sm text-ink/60">Price</span>
+              <span className="price-tag text-base font-semibold text-ink">
+                {formatCurrency(item.price)}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirming(false)}
+                className="flex-1 border border-ink/20 py-2 font-mono text-xs uppercase tracking-widest text-ink/70 hover:border-ink/40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="flex-1 bg-ink py-2 font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili"
+              >
+                Yes, add it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
