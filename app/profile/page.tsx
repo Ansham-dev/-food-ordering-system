@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -38,6 +39,7 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
+    setError("");
     try {
       const res = await fetch("/api/auth/me", {
         method: "PATCH",
@@ -49,9 +51,17 @@ export default function ProfilePage() {
         }),
       });
       if (res.ok) {
+        const fresh = await res.json();
+        setUser(fresh);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error || `Save failed (status ${res.status}). Try signing in again.`);
       }
+    } catch (err) {
+      console.error(err);
+      setError("Network error — is the dev server / database running?");
     } finally {
       setSaving(false);
     }
@@ -118,6 +128,12 @@ export default function ProfilePage() {
             className="w-full border border-ink/20 px-3 py-2 text-sm outline-none focus:border-chili"
           />
         </div>
+
+        {error && (
+          <p className="border border-chili/30 bg-chili/5 px-3 py-2 text-sm text-chili">
+            {error}
+          </p>
+        )}
 
         <Button type="submit" className="w-full" disabled={saving}>
           {saving ? "Saving..." : saved ? "Saved ✓" : "Save changes"}
