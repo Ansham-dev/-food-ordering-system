@@ -37,3 +37,6 @@ next-env.d.ts
 /prisma/migrations/dev
 *.db
 *.db-journal
+
+.vercel
+.env*
