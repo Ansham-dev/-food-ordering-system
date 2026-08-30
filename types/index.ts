@@ -10,7 +10,7 @@ export interface FoodItem {
   name: string;
   description: string;
   price: number;
-  category: FoodCategory;
+  category: string;
   image: string;
   rating: number;
   isAvailable: boolean;
