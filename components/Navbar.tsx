@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { loadCart, cartCount } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -18,6 +18,7 @@ interface SessionUser {
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [count, setCount] = useState(0);
   const [user, setUser] = useState<SessionUser | null>(null);
   const [checked, setChecked] = useState(false);
@@ -35,16 +36,22 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .finally(() => setChecked(true));
-  }, []);
+    function fetchUser() {
+      fetch("/api/auth/me")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => setUser(data))
+        .finally(() => setChecked(true));
+    }
+    fetchUser();
+    window.addEventListener("auth-updated", fetchUser);
+    return () => window.removeEventListener("auth-updated", fetchUser);
+  }, [pathname]);
 
   async function handleSignOut() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     setMenuOpen(false);
+    window.dispatchEvent(new Event("auth-updated"));
     router.push("/");
     router.refresh();
   }
