@@ -1,0 +1,76 @@
+"use client";
+
+import { FoodItem, CartItem } from "@/types";
+import { formatCurrency, loadCart, saveCart } from "@/lib/utils";
+import Button from "./Button";
+
+function notifyCartUpdated() {
+  window.dispatchEvent(new Event("cart-updated"));
+}
+
+export function addToCart(item: FoodItem, quantity = 1) {
+  const cart = loadCart();
+  const existing = cart.find((ci) => ci.item.id === item.id);
+  let next: CartItem[];
+  if (existing) {
+    next = cart.map((ci) =>
+      ci.item.id === item.id ? { ...ci, quantity: ci.quantity + quantity } : ci
+    );
+  } else {
+    next = [...cart, { item, quantity }];
+  }
+  saveCart(next);
+  notifyCartUpdated();
+}
+
+export default function FoodCard({ item }: { item: FoodItem }) {
+  return (
+    <div className="ticket group flex flex-col overflow-hidden transition-transform hover:-translate-y-0.5">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper">
+        <img
+          src={item.image}
+          alt={item.name}
+          className="h-full w-full object-cover grayscale-[15%] transition-transform group-hover:scale-105"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+        {item.isPopular && (
+          <span className="absolute left-0 top-3 bg-chili px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-white">
+            No. 1 seller
+          </span>
+        )}
+        {item.isVegetarian && (
+          <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full border-2 border-olive bg-cream text-[10px] font-bold text-olive">
+            V
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-display text-sm leading-tight text-ink">
+            {item.name}
+          </h3>
+          <span className="whitespace-nowrap font-mono text-xs text-mustard">
+            {item.rating.toFixed(1)}★
+          </span>
+        </div>
+        <p className="line-clamp-2 text-sm text-ink/55">{item.description}</p>
+
+        <div className="ticket-tear mt-3 flex items-center justify-between pt-3">
+          <span className="price-tag text-base font-semibold text-ink">
+            {formatCurrency(item.price)}
+          </span>
+          <Button
+            size="sm"
+            disabled={!item.isAvailable}
+            onClick={() => addToCart(item)}
+          >
+            {item.isAvailable ? "Add +" : "Sold out"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

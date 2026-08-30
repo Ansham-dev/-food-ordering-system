@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Note: SQLite has no native enum type, so role/category/status/payment are
+// plain strings, validated in application code (see lib/validators.ts).
+// Valid values:
+//   User.role           -> "customer" | "admin"
+//   FoodItem.category   -> "pizza" | "burgers" | "asian" | "desserts" | "drinks"
+//   Order.status        -> "pending" | "confirmed" | "preparing" | "out-for-delivery" | "delivered" | "cancelled"
+//   Order.paymentMethod -> "card" | "cash" | "upi"
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  address   String?
+  role      String   @default("customer")
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FoodItem {
+  id              String      @id @default(cuid())
+  name            String
+  description     String
+  price           Int
+  category        String
+  image           String
+  rating          Float       @default(0)
+  isAvailable     Boolean     @default(true)
+  isPopular       Boolean     @default(false)
+  isVegetarian    Boolean     @default(false)
+  prepTimeMinutes Int         @default(15)
+  orderItems      OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  user            User        @relation(fields: [userId], references: [id])
+  userId          String
+  items           OrderItem[]
+  status          String      @default("pending")
+  total           Int
+  deliveryAddress String
+  customerName    String
+  customerPhone   String
+  paymentMethod   String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId    String
+  foodItem   FoodItem @relation(fields: [foodItemId], references: [id])
+  foodItemId String
+  name       String
+  price      Int
+  quantity   Int
+  notes      String?
+}

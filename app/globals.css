@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-cream text-ink antialiased font-body;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+/* --- Ticket-stub signature element --------------------------------- */
+/* A dish card reads like a torn order ticket: perforated top edge via a
+   repeating radial-gradient "punch" pattern, dashed tear-line before the
+   price row, and a monospace price like a receipt line item. */
+
+.ticket {
+  position: relative;
+  background: #fff;
+  border: 1px solid rgba(28, 24, 21, 0.1);
+}
+
+.ticket::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-image: radial-gradient(
+    circle at 10px 0,
+    transparent 6px,
+    #faf6ef 6.5px
+  );
+  background-size: 20px 10px;
+  background-repeat: repeat-x;
+}
+
+.ticket-tear {
+  border-top: 1.5px dashed rgba(28, 24, 21, 0.18);
+}
+
+.price-tag {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: -0.02em;
+}
+
+/* Subtle film-grain texture over the cream background so large flat areas
+   don't read as flat AI-default gradients. */
+.grain-bg {
+  position: relative;
+}
+.grain-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
