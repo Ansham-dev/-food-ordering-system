@@ -21,6 +21,7 @@ export default function Navbar() {
   const [count, setCount] = useState(0);
   const [user, setUser] = useState<SessionUser | null>(null);
   const [checked, setChecked] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const sync = () => setCount(cartCount(loadCart()));
@@ -43,6 +44,7 @@ export default function Navbar() {
   async function handleSignOut() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
+    setMenuOpen(false);
     router.push("/");
     router.refresh();
   }
@@ -94,20 +96,87 @@ export default function Navbar() {
           {!checked ? null : user ? (
             <button
               onClick={handleSignOut}
-              className="bg-ink px-4 py-2 font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili"
+              className="hidden bg-ink px-4 py-2 font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili sm:block"
             >
               Sign out
             </button>
           ) : (
             <Link
               href="/login"
-              className="bg-ink px-4 py-2 font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili"
+              className="hidden bg-ink px-4 py-2 font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili sm:block"
             >
               Sign in
             </Link>
           )}
+
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center border border-ink/15 bg-white sm:hidden"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            <span className="relative flex h-3.5 w-4 flex-col justify-between">
+              <span
+                className={`h-[1.5px] w-full bg-ink transition-transform ${
+                  menuOpen ? "translate-y-[6.5px] rotate-45" : ""
+                }`}
+              />
+              <span
+                className={`h-[1.5px] w-full bg-ink transition-opacity ${
+                  menuOpen ? "opacity-0" : ""
+                }`}
+              />
+              <span
+                className={`h-[1.5px] w-full bg-ink transition-transform ${
+                  menuOpen ? "-translate-y-[6.5px] -rotate-45" : ""
+                }`}
+              />
+            </span>
+          </button>
         </div>
       </nav>
+
+      {menuOpen && (
+        <div className="border-t-2 border-ink bg-cream px-4 py-3 sm:hidden">
+          <div className="flex flex-col gap-1">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="py-2 font-mono text-xs uppercase tracking-widest text-ink/70 hover:text-ink"
+              >
+                {link.label}
+              </Link>
+            ))}
+            {user?.role === "admin" && (
+              <Link
+                href="/admin"
+                onClick={() => setMenuOpen(false)}
+                className="py-2 font-mono text-xs uppercase tracking-widest text-ink/70 hover:text-ink"
+              >
+                Admin
+              </Link>
+            )}
+            {!checked ? null : user ? (
+              <button
+                onClick={handleSignOut}
+                className="mt-2 bg-ink px-4 py-2 text-left font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili"
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="mt-2 bg-ink px-4 py-2 text-left font-mono text-xs uppercase tracking-widest text-cream hover:bg-chili"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
